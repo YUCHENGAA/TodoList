@@ -1,15 +1,10 @@
 <script setup>
-//import CompeletedTable from './components/CompeletedTable.vue';
 import TodoList from './components/TodoList.vue'
-import { Delete, Edit } from '@element-plus/icons-vue'
 </script>
 
 <template>
-    <h1>代辦清單</h1>
-    <TodoList/>
-
-      <p>我要編輯<el-button type="primary" :icon="Edit" circle /></p>
-
+  <h1>代辦清單</h1>
+  <TodoList />
 </template>
 
 <style>
@@ -31,7 +26,6 @@ body {
   width: 100vw;
   height: 100vh;
   max-width: 100%;
-  /* display: grid; */
   place-items: center;
 }
 </style>
