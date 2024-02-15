@@ -55,18 +55,13 @@ export default {
                 this.editingTime = '';
             } else {
                 // Add new todo
-                this.todos.push({ content: this.inputTodo, complete: false, todotime: this.inputTime });
+                this.todos.push({ content: this.inputTodo, todotime: this.inputTime, complete: false });
             }
-            //console.log(this.todos);
+            console.log(this.todos);
             this.inputTodo = '';
             this.inputTime = '';
         },
 
-        // add:function(){
-        //     this.todos.push({ content: this.inputTodo, complete: false, } );
-        //     console.log(this.todos);
-        //     this.inputTodo='';
-        // },
         ok: function (todo) {
             const completionDate = new Date().toLocaleDateString();
             console.log(this.todo);
@@ -86,7 +81,9 @@ export default {
         },
         Delete: function (done) {
             const index = this.dones.indexOf(done);
+            console.log(this.dones);
             if (index !== -1) {
+                console.log(this.dones);
                 this.dones.splice(index, 1);
             }
         },
