@@ -17,7 +17,6 @@
         <input type="date" v-model="inputTime">
         <br>
         <el-button id="new" @click="add">{{ editingTodo ? '更新' : '新增' }}事項</el-button>
-        <!-- <button id="new" @click="add" >新增事項</button> -->
     </div>
     <div class="done">
         <h2>已完成項目 | 完成時間</h2>
@@ -34,6 +33,9 @@
 </template>
 <script >
 import { Delete, Edit } from '@element-plus/icons-vue'
+import moment from 'moment';
+import axios from 'axios';
+
 export default {
     data() {
         return {
@@ -41,52 +43,134 @@ export default {
             inputTime: "",
             editingTodo: null,
             editingTime: null,
-            todos: [{ content: "和朋友吃飯", todotime: "2024-03-07", complete: false, },],
-            dones: [{ content: "英文閱讀", donetime: "2023-12-07", complete: true, },],
+            todos: [{}],
+            dones: [{}],
+            //todos: [{ no: 1, content: "和朋友吃飯", todotime: "2024-03-07", complete: false, },],
+            //dones: [{ no: 1, content: "英文閱讀", donetime: "2023-12-07", complete: true, },],
         };
     },
+
+    mounted() {
+        axios.all([
+            axios.get('http://localhost:8080/todolists/readTodo'),//GET Todolist請求
+            //axios.get('http://localhost:8080/donelists/readDone'),//GET Donelist請求
+        ])
+            .then(axios.spread((todoResponse, doneResponse) => {//
+                // for (int = 0; i < todoResponse.length; i++) {
+                //     if (todoResponse.complete == true) {
+                //         this.todo = todoResponse.data;
+                //     } else {
+                //         this.done = todoResponse.data;
+                //     }
+                // }
+                this.todos = todoResponse.data;
+                //this.dones = doneResponse.data;
+            }))
+            .catch((err) => console.log(err));
+
+    },
+
+    computed: {
+        todono() {
+            return (this.todos.length + 1);
+        },
+
+        doneno() {
+            return (this.dones.length + 1);
+        }
+    },
+
     methods: {
         add: function () {
             if (this.editingTodo) {
                 // Update existing todo
                 this.editingTodo.content = this.inputTodo;
                 this.editingTodo.todotime = this.inputTime;
+                // console.log(editingTodo);
+                const no = this.editingTodo.no;
+                console.log(no);
+                axios.put(`http://localhost:8080/todolists/update/${no}`, {
+                    todo: { no: this.todono, content: this.inputTodo, todotime: this.inputTime, complete: false }
+                })
+                    .then((todos) => { this.todos = todos.data; console.log(todos) })
+                    .catch((error) => console.log(error))
+
                 this.editingTodo = '';  // Reset editingTodo
                 this.editingTime = '';
             } else {
+                axios.post('http://localhost:8080/todolists/createTodo', {
+                    todo: { no: this.todono, content: this.inputTodo, todotime: this.inputTime, complete: false }
+                })
+                    .then((todos) => { this.todos = todos.data; console.log(todos) })
+                    .catch((error) => console.log(error))
+                console.log({ no: this.todono, content: this.inputTodo, todotime: this.inputTime, complete: false });
                 // Add new todo
-                this.todos.push({ content: this.inputTodo, todotime: this.inputTime, complete: false });
+                //this.todos.push({ no: this.todono, content: this.inputTodo, todotime: this.inputTime, complete: false });
             }
-            console.log(this.todos);
+            //console.log(this.todos);
             this.inputTodo = '';
             this.inputTime = '';
         },
 
         ok: function (todo) {
-            const completionDate = new Date().toLocaleDateString();
-            console.log(this.todo);
-            this.dones.push({ content: todo.content, complete: true, donetime: completionDate});
-            console.log(this.dones);
+            const no = todo.no;
+            console.log(todo);
+            console.log(no);
+            const completionDate = moment(new Date().toLocaleDateString()).format('YYYY-MM-DD');
 
-            // Remove the completed todo from the todos array
-            const index = this.todos.indexOf(todo);
-            if (index !== -1) {
-                this.todos.splice(index, 1);
-            }
+            // axios.put(`http://localhost:8080/todolists/update/${no}`, {
+            //     done: { no: this.todono, content: todo.content, donetime: completionDate, complete: true }
+            // })
+            //     .then((dones) => { this.dones = todos.data; console.log(dones) })
+            //     .catch((error) => console.log(error))
+
+
+            axios.delete(`http://localhost:8080/todolists/deleteTodo/${no}`)
+                .then((todos) => { this.todos = todos.data; })//console.log(todos)
+                .catch((error) => console.log(error));
+            // axios.delete('http://localhost:8080/todolists/deleteTodo/0')//DELETE Todolist請求
+            //     .then((todos) => { this.todos = todos.data; console.log(todos) })
+            //     .catch((error) => console.log(error));
+
+            //POST Donelist請求
+            axios.post('http://localhost:8080/donelists/createDone', {
+                done: { no: this.todono, content: todo.content, donetime: completionDate, complete: true }
+            })
+                .then((dones) => { this.dones = dones.data; console.log(dones) })
+                .catch((error) => console.log(error))
+
+            //console.log(this.todo);
+            // axios.post('http://localhost:8080/donelists/create2', {
+            //     done: { no: this.doneno, content: todo.content, donetime: completionDate, complete: true }
+            // })
+            //     .then((dones) => console.log(dones))
+            //     .catch((error) => console.log(error))
+
+            //this.dones.push({ no: this.doneno, content: todo.content, donetime: completionDate, complete: true });
+            //console.log(this.dones);
         },
         Edit: function (todo) {
             this.editingTodo = todo;
             this.inputTodo = todo.content;
-            this.inputTime = todo.todotime; 
+            this.inputTime = todo.todotime;
         },
         Delete: function (done) {
-            const index = this.dones.indexOf(done);
-            console.log(this.dones);
-            if (index !== -1) {
-                console.log(this.dones);
-                this.dones.splice(index, 1);
-            }
-        },
+            const no = done.no;
+            console.log(done);
+            console.log(no);
+            axios.delete(`http://localhost:8080/donelists/deleteDone/${no}`)
+                .then((dones) => { this.dones = dones.data; console.log(dones) })
+                .catch((error) => console.log(error));
+        }
+
+        // Delete: function (done) {
+        //     const no = done.doneno;
+        //     console.log(done);
+        //     console.log(no);
+        //     axios.delete('http://localhost:8080/donelists/deleteDone/${index}')
+        //         .then((dones) => { this.dones = dones.data; console.log(dones) })
+        //         .catch((error) => console.log(error))
+        // },
     },
 }
 </script>
