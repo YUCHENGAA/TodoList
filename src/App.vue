@@ -11,7 +11,6 @@ import TodoList from './components/TodoList.vue'
 * {
   box-sizing: border-box;
   margin: 0;
-  padding: 0;
   font-family: Arial, "PingFang SC", "Microsoft Yahei", sans-serif;
 }
 
